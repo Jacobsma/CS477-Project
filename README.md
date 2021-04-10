@@ -1,7 +1,6 @@
-<img src='main/automaton_a.png' align="center" width=100%>
+<img src='automaton_A.png' align="center" width=100%/>
 <br>
 Project for my CS477 (Algorithms) class
-<br>
 ## P-talk
 	- Techniques used
 	- Your idea (new)
@@ -19,6 +18,6 @@ Project for my CS477 (Algorithms) class
 	- Receive comments from the audience.
   	- Incorporate them into final presentation.
 
-### Source
+# Source
 	[Paper](https://arxiv.org/abs/2103.16185)
 
