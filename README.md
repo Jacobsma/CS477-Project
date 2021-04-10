@@ -1,5 +1,7 @@
-<img src='automaton_a.png' align="center" width=100%>
-
+<img src='main/automaton_a.png' align="center" width=100%>
+<br>
+Project for my CS477 (Algorithms) class
+<br>
 ## P-talk
 	- Techniques used
 	- Your idea (new)
@@ -16,4 +18,7 @@
 	- Present in a way so that you can convince your peers.
 	- Receive comments from the audience.
   	- Incorporate them into final presentation.
+
+### Source
+	[Paper](https://arxiv.org/abs/2103.16185)
 
