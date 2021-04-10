@@ -1,5 +1,6 @@
 <p>Project for my CS477 (Algorithms) class</p>
 <img src='automaton_A.png' align="center" width=50% height=50%/>
+
 ## P-talk
 - Techniques used
 - Your idea (new)
