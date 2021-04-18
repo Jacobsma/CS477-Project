@@ -1,0 +1,19 @@
+INFO  2021-04-14T14:07:31.563 120   channel_create_event:204: new channel 3 (function coc#rpc#start_server[17]..<SNR>16_start:34) : {"id": 3, "client": {}, "mode": "rpc", "stream": "job"}
+INFO  2021-04-14T14:07:32.085 120   on_process_exit:393: exited: pid=129 status=0 stoptime=0
+INFO  2021-04-14T14:07:32.169 120   main:566: starting main loop
+INFO  2021-04-14T17:03:53.143 120   emsg_multiline:687: E492: Not an editor command: W
+INFO  2021-04-14T17:11:21.426 120   os_proc_tree_kill:96: sending SIGTERM to PID -122
+INFO  2021-04-14T17:11:21.438 120   on_process_exit:393: exited: pid=122 status=143 stoptime=11051881001900
+INFO  2021-04-14T17:11:21.442 120   os_exit:593: Nvim exit: 0
+INFO  2021-04-14T17:12:15.403 93    channel_create_event:204: new channel 3 (function coc#rpc#start_server[17]..<SNR>16_start:34) : {"id": 3, "client": {}, "mode": "rpc", "stream": "job"}
+INFO  2021-04-14T17:12:15.483 93    on_process_exit:393: exited: pid=102 status=0 stoptime=0
+INFO  2021-04-14T17:12:15.507 93    main:566: starting main loop
+INFO  2021-04-14T17:17:36.158 93    os_proc_tree_kill:96: sending SIGTERM to PID -95
+INFO  2021-04-14T17:17:36.167 93    on_process_exit:393: exited: pid=95 status=143 stoptime=331558370200
+INFO  2021-04-14T17:17:36.172 93    os_exit:593: Nvim exit: 0
+INFO  2021-04-17T23:55:43.898 87    channel_create_event:204: new channel 3 (function coc#rpc#start_server[17]..<SNR>16_start:34) : {"id": 3, "client": {}, "mode": "rpc", "stream": "job"}
+INFO  2021-04-17T23:55:44.337 87    on_process_exit:393: exited: pid=96 status=0 stoptime=0
+INFO  2021-04-17T23:55:44.406 87    main:566: starting main loop
+INFO  2021-04-18T02:32:08.555 87    os_proc_tree_kill:96: sending SIGTERM to PID -89
+INFO  2021-04-18T02:32:08.567 87    on_process_exit:393: exited: pid=89 status=143 stoptime=9403928218000
+INFO  2021-04-18T02:32:08.572 87    os_exit:593: Nvim exit: 0
