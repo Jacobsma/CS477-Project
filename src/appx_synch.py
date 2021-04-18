@@ -284,14 +284,17 @@ if __name__ == "__main__":
         try:
             tests.append(Automata(automaton[0],automaton[1],automaton[2]))
         except Exception as e:
-            print(f"Invalid Automata:\t{automaton[0]}\t{automaton[1]}\t{automaton[2]}\n")
+            #print(f"Invalid Automata:\t{automaton[0]}\t{automaton[1]}\t{automaton[2]}\n")
+            continue
 
     for test in tests:
+        """
         print("H1", test.approximate_weighted_synch(4,test.t1,test.H1))
         print("H2", test.approximate_weighted_synch(4,test.t1,test.H2))
         print("H3", test.approximate_weighted_synch(4,test.t3,test.H3))
         print("H4", test.approximate_weighted_synch(4,test.t1,test.H4))
+        """
         print("Shortest", test.compute_shortest_word())
-        print(test)
+        #print(test)
 
 
