@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 import itertools
-
+import csv
 import heapq
 
 
@@ -214,6 +214,29 @@ class Automata(AutomataCore):
     def __str__(self):
         return f"\n----Automata----\n\n\nTransition Function:\n{self._transitionFunction}\n\nWeights:\n{self._weights}\n\nPower:\n{self._power}\n\nPower Transition Function:\n{self._powerTransitionFunction}\n\nGraph:\n{self._graph}\n\nKeys To States:\n{self.keyToStateDict}\n\n----------------\n"
 
+#TODO: support more than 9 states
+def getAutomataFromCSV(filename:str) -> list:
+    automata = list()
+    with open(filename, newline='') as f:
+        reader = csv.reader(f, delimiter=',', quotechar='"')
+        next(reader)
+        for row in reader:
+            weights = list()
+            for weight in range(len(row[0])):
+                weights.append(int(row[0][weight]))
+
+            transFunct = list()
+            for funct in range(len(row)-1):
+                states = list()
+                for state in range(len(row[funct+1])):
+                    states.append(int(row[funct+1][state]))
+                        
+
+
+                transFunct.append(states)
+            automata.append((transFunct,len(transFunct[0]),weights))
+    return automata
+
 if __name__ == "__main__":
 
     """
@@ -254,12 +277,21 @@ if __name__ == "__main__":
     print("shortest" ,d, len(d[1]))
     """
     
-    test = Automata([[1,2,3,0],[0,1,2,0],[0,1,0,3]],2,[1,2,6])
-    print("H1", test.approximate_weighted_synch(4,test.t1,test.H1))
-    print("H2", test.approximate_weighted_synch(4,test.t1,test.H2))
-    print("H3", test.approximate_weighted_synch(4,test.t3,test.H3))
-    print("H4", test.approximate_weighted_synch(4,test.t1,test.H4))
-    print("Shortest", test.compute_shortest_word())
-    print(test)
+            
+    #test = Automata([[1,2,3,0],[0,1,2,0],[0,1,0,3]],2,[1,2,6])
+    tests = list()
+    for automaton in getAutomataFromCSV("automata.csv"):
+        try:
+            tests.append(Automata(automaton[0],automaton[1],automaton[2]))
+        except Exception as e:
+            print(f"Invalid Automata:\t{automaton[0]}\t{automaton[1]}\t{automaton[2]}\n")
+
+    for test in tests:
+        print("H1", test.approximate_weighted_synch(4,test.t1,test.H1))
+        print("H2", test.approximate_weighted_synch(4,test.t1,test.H2))
+        print("H3", test.approximate_weighted_synch(4,test.t3,test.H3))
+        print("H4", test.approximate_weighted_synch(4,test.t1,test.H4))
+        print("Shortest", test.compute_shortest_word())
+        print(test)
 
 

@@ -17,3 +17,8 @@ INFO  2021-04-17T23:55:44.406 87    main:566: starting main loop
 INFO  2021-04-18T02:32:08.555 87    os_proc_tree_kill:96: sending SIGTERM to PID -89
 INFO  2021-04-18T02:32:08.567 87    on_process_exit:393: exited: pid=89 status=143 stoptime=9403928218000
 INFO  2021-04-18T02:32:08.572 87    os_exit:593: Nvim exit: 0
+INFO  2021-04-18T11:06:50.030 260   channel_create_event:204: new channel 3 (function coc#rpc#start_server[17]..<SNR>16_start:34) : {"id": 3, "client": {}, "mode": "rpc", "stream": "job"}
+INFO  2021-04-18T11:06:50.168 260   on_process_exit:393: exited: pid=263 status=0 stoptime=0
+INFO  2021-04-18T11:06:50.197 260   main:566: starting main loop
+INFO  2021-04-18T12:09:17.090 260   emsg_multiline:687: E486: Pattern not found: ,
+INFO  2021-04-18T12:39:38.069 260   emsg_multiline:687: E492: Not an editor command: W
