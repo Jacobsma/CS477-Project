@@ -1,9 +1,26 @@
 #!/usr/bin/env python
 # coding: utf-8
 import itertools
-import csv
+import csv #CSV import/export
 import heapq
+import time #Timing
+import argparse #CLI
+import pathlib #CLI
 
+"""
+TODOS:
+    [X]--> Command Line Args
+    [X]--> Timing 
+    [ ]--> Heuristics 
+    [/]--> Passing Automata through CLI 
+    [?]--> Optimization 
+    [X]--> OOP Refactor 
+
+Legend:
+    X --> Done
+    / --> Partly Done
+    ? --> Optional
+"""
 
 class AutomataCore:
     def __init__(self,transition:list,power:int=1):
@@ -86,15 +103,24 @@ class AutomataCore:
                 image = self._compute_image(letter, el) 
                 power_letter.append(self._stateToKey[image])
             self._powerTransitionFunction.append(power_letter)
-        #returned power func and keyToState
         return
 
 class Automata(AutomataCore):
 
-    def __init__(self,transition:list,power:int,weights:list):
+    def __init__(self,transition:list,power:int,weights:list,shouldTime=False):
+        self._shouldTime = shouldTime
+        self._timeInit = 0
+        self._timeCompShort = 0
+        self._time = 0
+        if (self._shouldTime):
+            startTimeInit = time.time()
         super().__init__(transition,power)
         self._weights = weights
         self._graph = dict()
+        self._shortest = ""
+        if (self._shouldTime):
+            endTimeInit = time.time()
+            self._timeInit = endTimeInit - startTimeInit
 
     def graph(self,transition:list):
         self._graph = dict([(i, dict()) for i in range(len(transition[0]))])
@@ -136,6 +162,8 @@ class Automata(AutomataCore):
         return result
 
     def compute_shortest_word(self) -> list:
+        if (self._shouldTime):
+            startTimeCompShort = time.time()
         self._power = len(self._transitionFunction[0])
         self._compute_automaton_m()
         aut = (self.powerTransitionFunction,self.keyToStateDict) 
@@ -146,7 +174,11 @@ class Automata(AutomataCore):
             for el in tmp:
                 if shortest_words[el][0] > tmp[el][0]:
                     shortest_words[el] = tmp[el]
-        return list(shortest_words.items())[-1][1]
+        if (self._shouldTime):
+            endTimeCompShort = time.time()
+            self._timeCompShort = endTimeCompShort - startTimeCompShort
+        self._shortest = list(shortest_words.items())[-1][1][1]
+        return self._shortest 
 
 
     def t1(self,P:set,T:tuple,m:int) -> bool:
@@ -180,6 +212,8 @@ class Automata(AutomataCore):
 
     def approximate_weighted_synch(self,m:int, t, H) -> tuple:
         self._power = m
+        if (self._shouldTime):
+            startTimeAWS = time.time()
         self._compute_automaton_m()
         aut = (self.powerTransitionFunction,self.keyToStateDict) 
         self.graph(aut[0])
@@ -209,10 +243,27 @@ class Automata(AutomataCore):
                 return ""
             u = u + w
             T = self.compute_image_by_word(T, w)
+        if (self._shouldTime):
+            endTimeAWS = time.time()
+            self._time = endTimeAWS - startTimeAWS
         return (u, len(u), self.word_weight(u))
+
+    def getTiming(self,timing:str):
+        timingType = str.lower(timing)
+        if (timingType == "total"):
+            return self._time
+        elif (timingType == "shortest"):
+            return self._timeCompShort
+        elif (timingType == "init"):
+            return self._timeInit
+        else:
+            return -1
+
+    def getShortest(self):
+        return self._shortest
     
     def __str__(self):
-        return f"\n----Automata----\n\n\nTransition Function:\n{self._transitionFunction}\n\nWeights:\n{self._weights}\n\nPower:\n{self._power}\n\nPower Transition Function:\n{self._powerTransitionFunction}\n\nGraph:\n{self._graph}\n\nKeys To States:\n{self.keyToStateDict}\n\n----------------\n"
+        return f"\n----Automata----\n\n\nTransition Function:\n{self._transitionFunction}\n\nWeights:\n{self._weights}\n\nShortest Word:\n{self._shortest}\n\nShortest Word Length:\n{str(len(self._shortest))}\n\nPower:\n{self._power}\n\nPower Transition Function:\n{self._powerTransitionFunction}\n\nGraph:\n{self._graph}\n\nKeys To States:\n{self.keyToStateDict}\n\nTime to Initilize:\n{self._timeInit}\n\nTime to Compute Shortest Word:\n{self._timeCompShort}\n\nTime to Approximate Shortest Word:\n{self._time}\n\n\n----------------\n"
 
 #TODO: support more than 9 states
 def getAutomataFromCSV(filename:str) -> list:
@@ -238,63 +289,61 @@ def getAutomataFromCSV(filename:str) -> list:
     return automata
 
 if __name__ == "__main__":
-
-    """
-    mTwo = Automata([[1,2,3,4,5,6,7,8,9,10,11,0],[0,1,2,3,4,5,6,7,8,9,10,0], [1,1,2,3,4,5,6,7,8,9,10,11], [0,1,2,3,3,5,6,7,8,9,10,11]],2, [1,6,2,7]) 
-    print("m = 2")
-    print("H1" ,mTwo.approximate_weighted_synch(2,mTwo.t1,mTwo.H1))
-    print("H2" ,mTwo.approximate_weighted_synch(2,mTwo.t1,mTwo.H2))
-    print("H3" ,mTwo.approximate_weighted_synch(2,mTwo.t3,mTwo.H3))
-    print("H4" ,mTwo.approximate_weighted_synch(2,mTwo.t1,mTwo.H4))
-    print("m = 3")
-    print("H1" ,mTwo.approximate_weighted_synch(3,mTwo.t1,mTwo.H1))
-    print("H2" ,mTwo.approximate_weighted_synch(3,mTwo.t1,mTwo.H2))
-    print("H3" ,mTwo.approximate_weighted_synch(3,mTwo.t3,mTwo.H3))
-    print("H4" ,mTwo.approximate_weighted_synch(3,mTwo.t1,mTwo.H4))
-    print("m = 4")
-    print("H1" ,mTwo.approximate_weighted_synch(4,mTwo.t1,mTwo.H1))
-    print("H2" ,mTwo.approximate_weighted_synch(4,mTwo.t1,mTwo.H2))
-    print("H3" ,mTwo.approximate_weighted_synch(4,mTwo.t3,mTwo.H3))
-    print("H4" ,mTwo.approximate_weighted_synch(4,mTwo.t1,mTwo.H4))
-    print("m = 5")
-    print("H1" ,mTwo.approximate_weighted_synch(5,mTwo.t1,mTwo.H1))
-    print("H2" ,mTwo.approximate_weighted_synch(5,mTwo.t1,mTwo.H2))
-    print("H3" ,mTwo.approximate_weighted_synch(5,mTwo.t3,mTwo.H3))
-    print("H4" ,mTwo.approximate_weighted_synch(5,mTwo.t1,mTwo.H4))
-    print("m = 6")
-    print("H1" ,mTwo.approximate_weighted_synch(6,mTwo.t1,mTwo.H1))
-    print("H2" ,mTwo.approximate_weighted_synch(6,mTwo.t1,mTwo.H2))
-    print("H3" ,mTwo.approximate_weighted_synch(6,mTwo.t3,mTwo.H3))
-    print("H4" ,mTwo.approximate_weighted_synch(6,mTwo.t1,mTwo.H4))
-
-    #print(mTwo)
-
-    c = mTwo.compute_shortest_word()
-
-    d = Automata([[1,2,3,4,5,6,7,8,9,10,11,0],[0,1,2,3,4,5,6,7,8,9,10,0], [1,1,2,3,4,5,6,7,8,9,10,11], [0,1,2,3,3,5,6,7,8,9,10,11]],2, [1,1,1,1]).compute_shortest_word() 
-
-    print("least weight" ,c, len(c[1]))
-    print("shortest" ,d, len(d[1]))
-    """
-    
             
-    #test = Automata([[1,2,3,0],[0,1,2,0],[0,1,0,3]],2,[1,2,6])
+    #TODO: Make a better description
+    parser = argparse.ArgumentParser(description="Automata Creation and testing script")
+
+    parser.add_argument("-e","--entry",type=ascii,help="The transition function and weights for the Automata\nUsage: -e '[weights]' '[weightOneStates,weightTwoStates,...,weightNStates]'")
+    parser.add_argument("-f","--file",type=pathlib.Path,help="Specifies a file to be parsed for Automata\nUsage: -f 'path/to/file'")
+    parser.add_argument("-t","--time",type=ascii,help="Specify a timing method for Automata\nUsage: -t '[total,init,shortest]'",choices=["'total'","'init'","'shortest'"])
+    parser.add_argument("-v","--verbose",help="Enable verbose output for Automata\nUsage: -v",action='store_true')
+    parser.add_argument("-o","--output",type=pathlib.Path,help="Specify an output file for Automata\nUsage: -o 'path/to/output'")
+
+    args = vars(parser.parse_args())
+
+    verbose = args['verbose']
+    timing = args['time']
+    output = args['output']
+    inputFile = args['file']
+    weights,transitionFunction = args['entry'].split()
+
     tests = list()
-    for automaton in getAutomataFromCSV("automata.csv"):
-        try:
-            tests.append(Automata(automaton[0],automaton[1],automaton[2]))
-        except Exception as e:
-            #print(f"Invalid Automata:\t{automaton[0]}\t{automaton[1]}\t{automaton[2]}\n")
-            continue
+    if (inputFile.exists()):
+        for automaton in getAutomataFromCSV(inputFile):
+            try:
+                tests.append(Automata(automaton[0],automaton[1],automaton[2],shouldTime=True))
+            except Exception as e:
+                print(f"Invalid Automata:\t{automaton[0]}\t{automaton[1]}\t{automaton[2]}\n")
+                continue
+
+    maxTime = (0,None)
 
     for test in tests:
-        """
-        print("H1", test.approximate_weighted_synch(4,test.t1,test.H1))
-        print("H2", test.approximate_weighted_synch(4,test.t1,test.H2))
-        print("H3", test.approximate_weighted_synch(4,test.t3,test.H3))
-        print("H4", test.approximate_weighted_synch(4,test.t1,test.H4))
-        """
-        print("Shortest", test.compute_shortest_word())
-        #print(test)
+        test.approximate_weighted_synch(4,test.t1,test.H1)
+        test.approximate_weighted_synch(4,test.t1,test.H2)
+        test.approximate_weighted_synch(4,test.t3,test.H3)
+        test.approximate_weighted_synch(4,test.t1,test.H4)
+
+        test.compute_shortest_word()
+
+        if (timing is not None):
+            newMax = max(maxTime[0],test.getTiming(timing.strip("'")))
+            if (newMax > maxTime[0]):
+                maxTime = (newMax,test)
+
+    if (output is not None):
+        with output.open('a') as outFile:
+            if (verbose):
+                for test in tests:
+                    outFile.write(str(test)) 
+            else:
+                for test in tests:
+                    outFile.write("Shortest:\t" + test.getShortest() + "\nLength:\t" + str(len(test.getShortest())) + "\n\n")
+    else:
+        for test in tests:
+            print("Shortest:\t" + test.getShortest())
+
+    #TODO: Parse -e inputs
+    #print(weights,transitionFunction)
 
 
