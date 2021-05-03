@@ -22,3 +22,42 @@ INFO  2021-04-18T11:06:50.168 260   on_process_exit:393: exited: pid=263 status=
 INFO  2021-04-18T11:06:50.197 260   main:566: starting main loop
 INFO  2021-04-18T12:09:17.090 260   emsg_multiline:687: E486: Pattern not found: ,
 INFO  2021-04-18T12:39:38.069 260   emsg_multiline:687: E492: Not an editor command: W
+INFO  2021-04-18T13:46:53.839 260   os_proc_tree_kill:96: sending SIGTERM to PID -262
+INFO  2021-04-18T13:46:53.857 260   on_process_exit:393: exited: pid=262 status=143 stoptime=9739517484100
+INFO  2021-04-18T13:46:53.862 260   os_exit:593: Nvim exit: 0
+INFO  2021-05-01T22:37:44.320 98    channel_create_event:204: new channel 3 (function coc#rpc#start_server[17]..<SNR>16_start:34) : {"id": 3, "client": {}, "mode": "rpc", "stream": "job"}
+INFO  2021-05-01T22:37:44.804 98    on_process_exit:393: exited: pid=107 status=0 stoptime=0
+INFO  2021-05-01T22:37:44.880 98    main:566: starting main loop
+INFO  2021-05-02T02:41:09.203 98    os_proc_tree_kill:96: sending SIGTERM to PID -100
+INFO  2021-05-02T02:41:09.216 98    on_process_exit:393: exited: pid=100 status=143 stoptime=15272644230300
+INFO  2021-05-02T02:41:09.222 98    os_exit:593: Nvim exit: 0
+INFO  2021-05-03T00:12:55.809 84    channel_create_event:204: new channel 3 (function coc#rpc#start_server[17]..<SNR>16_start:34) : {"id": 3, "client": {}, "mode": "rpc", "stream": "job"}
+INFO  2021-05-03T00:12:56.289 84    on_process_exit:393: exited: pid=93 status=0 stoptime=0
+INFO  2021-05-03T00:12:56.364 84    main:566: starting main loop
+INFO  2021-05-03T01:58:29.719 84    os_proc_tree_kill:96: sending SIGTERM to PID -86
+INFO  2021-05-03T01:58:29.735 84    on_process_exit:393: exited: pid=86 status=143 stoptime=8437014310400
+INFO  2021-05-03T01:58:29.740 84    os_exit:593: Nvim exit: 0
+INFO  2021-05-03T02:00:48.847 1193  channel_create_event:204: new channel 3 (function coc#rpc#start_server[17]..<SNR>16_start:34) : {"id": 3, "client": {}, "mode": "rpc", "stream": "job"}
+INFO  2021-05-03T02:00:48.926 1193  on_process_exit:393: exited: pid=1202 status=0 stoptime=0
+INFO  2021-05-03T02:00:48.951 1193  main:566: starting main loop
+INFO  2021-05-03T02:07:32.379 1193  os_proc_tree_kill:96: sending SIGTERM to PID -1195
+INFO  2021-05-03T02:07:32.395 1193  on_process_exit:393: exited: pid=1195 status=143 stoptime=8979673909800
+INFO  2021-05-03T02:07:32.400 1193  os_exit:593: Nvim exit: 0
+INFO  2021-05-03T02:08:06.538 1422  channel_create_event:204: new channel 3 (function coc#rpc#start_server[17]..<SNR>16_start:34) : {"id": 3, "client": {}, "mode": "rpc", "stream": "job"}
+INFO  2021-05-03T02:08:06.698 1422  main:566: starting main loop
+INFO  2021-05-03T02:20:02.832 1449  channel_create_event:204: new channel 3 (function coc#rpc#start_server[17]..<SNR>16_start:34) : {"id": 3, "client": {}, "mode": "rpc", "stream": "job"}
+INFO  2021-05-03T02:20:02.902 1449  on_process_exit:393: exited: pid=1458 status=0 stoptime=0
+INFO  2021-05-03T02:20:02.926 1449  main:566: starting main loop
+INFO  2021-05-03T02:20:51.579 1449  os_proc_tree_kill:96: sending SIGTERM to PID -1451
+INFO  2021-05-03T02:20:51.591 1449  on_process_exit:393: exited: pid=1451 status=143 stoptime=9778874120000
+INFO  2021-05-03T02:20:51.595 1449  os_exit:593: Nvim exit: 0
+INFO  2021-05-03T02:37:46.816 1494  channel_create_event:204: new channel 3 (function coc#rpc#start_server[17]..<SNR>16_start:34) : {"id": 3, "client": {}, "mode": "rpc", "stream": "job"}
+INFO  2021-05-03T02:37:46.890 1494  on_process_exit:393: exited: pid=1503 status=0 stoptime=0
+INFO  2021-05-03T02:37:46.915 1494  main:566: starting main loop
+INFO  2021-05-03T02:39:23.238 1422  emsg_multiline:687: E492: Not an editor command: W
+INFO  2021-05-03T02:39:47.677 1422  os_proc_tree_kill:96: sending SIGTERM to PID -1424
+INFO  2021-05-03T02:39:47.689 1422  on_process_exit:393: exited: pid=1424 status=143 stoptime=10914971855500
+INFO  2021-05-03T02:39:47.694 1422  os_exit:593: Nvim exit: 0
+INFO  2021-05-03T02:39:59.888 1494  os_proc_tree_kill:96: sending SIGTERM to PID -1496
+INFO  2021-05-03T02:39:59.901 1494  on_process_exit:393: exited: pid=1496 status=143 stoptime=10927183191200
+INFO  2021-05-03T02:39:59.906 1494  os_exit:593: Nvim exit: 0

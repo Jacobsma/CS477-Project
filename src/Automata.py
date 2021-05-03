@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding: utf-8
 import itertools
 import csv #CSV import/export
@@ -12,7 +12,7 @@ TODOS:
     [X]--> Command Line Args
     [X]--> Timing 
     [ ]--> Heuristics 
-    [/]--> Passing Automata through CLI 
+    [X]--> Passing Automata through CLI 
     [?]--> Optimization 
     [X]--> OOP Refactor 
 
@@ -265,27 +265,33 @@ class Automata(AutomataCore):
     def __str__(self):
         return f"\n----Automata----\n\n\nTransition Function:\n{self._transitionFunction}\n\nWeights:\n{self._weights}\n\nShortest Word:\n{self._shortest}\n\nShortest Word Length:\n{str(len(self._shortest))}\n\nPower:\n{self._power}\n\nPower Transition Function:\n{self._powerTransitionFunction}\n\nGraph:\n{self._graph}\n\nKeys To States:\n{self.keyToStateDict}\n\nTime to Initilize:\n{self._timeInit}\n\nTime to Compute Shortest Word:\n{self._timeCompShort}\n\nTime to Approximate Shortest Word:\n{self._time}\n\n\n----------------\n"
 
-#TODO: support more than 9 states
-def getAutomataFromCSV(filename:str) -> list:
+def getAutomataFromFile(filename:str) -> list:
     automata = list()
     with open(filename, newline='') as f:
-        reader = csv.reader(f, delimiter=',', quotechar='"')
-        next(reader)
-        for row in reader:
-            weights = list()
-            for weight in range(len(row[0])):
-                weights.append(int(row[0][weight]))
+        next(f)
+        for row in f:
+            row = ''.join(row)
+            weights,transitionFunction = row.split(':')
+            weights = weights.strip("'[]")
+            transitionFunction = transitionFunction.strip("'")
 
-            transFunct = list()
-            for funct in range(len(row)-1):
-                states = list()
-                for state in range(len(row[funct+1])):
-                    states.append(int(row[funct+1][state]))
-                        
+            x = list()
+            for weight in weights.split(','):
+                x.append(int(weight))
 
+            weights = x
 
-                transFunct.append(states)
-            automata.append((transFunct,len(transFunct[0]),weights))
+            x = list()
+            transitionFunction = transitionFunction[1:-1]
+            for symbol in transitionFunction.split('|'):
+                y = list()
+                for state in symbol.strip('[]').split(','):
+                    y.append(int(state))
+
+                x.append(y)
+                
+            transitionFunction = x
+            automata.append((transitionFunction,len(transitionFunction[0]),weights))
     return automata
 
 if __name__ == "__main__":
@@ -293,7 +299,7 @@ if __name__ == "__main__":
     #TODO: Make a better description
     parser = argparse.ArgumentParser(description="Automata Creation and testing script")
 
-    parser.add_argument("-e","--entry",type=ascii,help="The transition function and weights for the Automata\nUsage: -e '[weights]' '[weightOneStates,weightTwoStates,...,weightNStates]'")
+    parser.add_argument("-e","--entry",type=ascii,help="The transition function and weights for the Automata\nUsage: -e '[weightOne,weightTwo,...,weightN] [[weightOneStateOne,weightOneStateTwo,...,weightNStateN]|[weightTwoStates]|...|[weightNStates]]'\nExample: -e '[1,10] [[1,2,3,4,0,0]|[1,2,4,4,5,0]]'")
     parser.add_argument("-f","--file",type=pathlib.Path,help="Specifies a file to be parsed for Automata\nUsage: -f 'path/to/file'")
     parser.add_argument("-t","--time",type=ascii,help="Specify a timing method for Automata\nUsage: -t '[total,init,shortest]'",choices=["'total'","'init'","'shortest'"])
     parser.add_argument("-v","--verbose",help="Enable verbose output for Automata\nUsage: -v",action='store_true')
@@ -305,19 +311,50 @@ if __name__ == "__main__":
     timing = args['time']
     output = args['output']
     inputFile = args['file']
-    weights,transitionFunction = args['entry'].split()
 
     tests = list()
-    if (inputFile.exists()):
-        for automaton in getAutomataFromCSV(inputFile):
+    if (inputFile is not None and inputFile.exists()):
+        for automaton in getAutomataFromFile(inputFile):
             try:
                 tests.append(Automata(automaton[0],automaton[1],automaton[2],shouldTime=True))
             except Exception as e:
-                print(f"Invalid Automata:\t{automaton[0]}\t{automaton[1]}\t{automaton[2]}\n")
+                if (verbose):
+                    print(f"Invalid Automata:\t{automaton[2]},\t{automaton[0]},\t{automaton[1]}\n")
                 continue
 
-    maxTime = (0,None)
+    else:
+        weights, transitionFunction = list(),list()
+        if (args['entry'] is not None):
+            weights,transitionFunction = args['entry'].split()
+            weights = weights.strip("'[]")
+            transitionFunction = transitionFunction.strip("'")
 
+            x = list()
+            for weight in weights.split(','):
+                x.append(int(weight))
+
+            weights = x
+
+            x = list()
+            transitionFunction = transitionFunction[1:-1]
+            for symbol in transitionFunction.split('|'):
+                y = list()
+                for state in symbol.strip('[]').split(','):
+                    y.append(int(state))
+
+                x.append(y)
+                
+            transitionFunction = x
+
+            try:
+                tests.append(Automata(transitionFunction,len(transitionFunction[0]),weights,shouldTime=True))
+            except Exception:
+                print(f"Invalid Automata:\t{weights},\t{transitionFunction},\t{len(transitionFunction[0])}\n")
+                exit()
+        else:
+            parser.parse_args(['--help'])
+
+    maxTime = (0,None)
     for test in tests:
         test.approximate_weighted_synch(4,test.t1,test.H1)
         test.approximate_weighted_synch(4,test.t1,test.H2)
@@ -340,10 +377,10 @@ if __name__ == "__main__":
                 for test in tests:
                     outFile.write("Shortest:\t" + test.getShortest() + "\nLength:\t" + str(len(test.getShortest())) + "\n\n")
     else:
-        for test in tests:
-            print("Shortest:\t" + test.getShortest())
-
-    #TODO: Parse -e inputs
-    #print(weights,transitionFunction)
-
+        if (verbose):
+            for test in tests:
+                print(test)
+        else:
+            for test in tests:
+                print("Shortest:\t" + test.getShortest())
 
