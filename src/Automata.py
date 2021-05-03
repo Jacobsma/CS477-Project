@@ -11,9 +11,9 @@ import pathlib #CLI
 TODOS:
     [X]--> Command Line Args
     [X]--> Timing 
-    [ ]--> Heuristics 
+    [X]--> Heuristics 
     [X]--> Passing Automata through CLI 
-    [?]--> Optimization 
+    [X]--> Optimization 
     [X]--> OOP Refactor 
 
 Legend:
@@ -111,13 +111,16 @@ class Automata(AutomataCore):
         self._shouldTime = shouldTime
         self._timeInit = 0
         self._timeCompShort = 0
-        self._time = 0
+        self._time = list()
         if (self._shouldTime):
+            self._totalTests = 0
             startTimeInit = time.time()
         super().__init__(transition,power)
         self._weights = weights
         self._graph = dict()
         self._shortest = ""
+        self._shortestWords = dict()
+        self._maxGraphDistances = dict()
         if (self._shouldTime):
             endTimeInit = time.time()
             self._timeInit = endTimeInit - startTimeInit
@@ -130,12 +133,21 @@ class Automata(AutomataCore):
             for el in letter:
                 self._graph[el][i] = (weight, symbol)
                 i = i+1
+
+        #Calculate max graph distances once
+        self._maxGraphDistances = {vertex: (float('infinity'),"") for vertex in self._graph}
         return 
 
 
     #TODO: maybe store this?
     def compute_shortest_words(self,starting_vertex:int) -> dict:
-        distances = {vertex: (float('infinity'),"") for vertex in self._graph}
+
+        #Check if we have already calculated for this starting_vertex
+        if (starting_vertex in self._shortestWords):
+            return self._shortestWords[starting_vertex]
+
+        #We haven't already calculated shortest words
+        distances = self._maxGraphDistances 
         distances[starting_vertex] = (0,"")
 
         pq = [(0, starting_vertex, "")]
@@ -152,6 +164,8 @@ class Automata(AutomataCore):
                     distances[neighbor] = (distance, symbol + current_word)
                     heapq.heappush(pq, (distance, neighbor, symbol + current_word))
 
+        # Store a copy of the shortest words from a given distance so that we can preform a look up for later calls
+        self._shortestWords[starting_vertex] = distances
         return distances
 
     def compute_image_by_word(self, tup:tuple, word:str) -> tuple:
@@ -184,21 +198,21 @@ class Automata(AutomataCore):
     def t1(self,P:set,T:tuple,m:int) -> bool:
         return P.issubset(set(T)) and len(P) > 1
 
-    def H1(self,P:set,T:tuple,w:str) -> float:
+    def h1(self,P:set,T:tuple,w:str) -> float:
         image = self.compute_image_by_word(P, w[1])
         return w[0]/(len(P)-len(image))
 
-    def H2(self,P:set,T:tuple,w:str) -> float:
+    def h2(self,P:set,T:tuple,w:str) -> float:
         image = self.compute_image_by_word(T, w[1])
         return w[0]/(len(T)-len(image))
 
     def t3(self,P:set,T:tuple,m:int) -> bool:
         return set(P).issubset(set(T)) and len(P) == min(m, len(T))
 
-    def H3(self,P:set,T:tuple,w:str) -> int:
+    def h3(self,P:set,T:tuple,w:str) -> int:
         return  w[0]
 
-    def H4(self,P:set,T:tuple,w:str) -> float:
+    def h4(self,P:set,T:tuple,w:str) -> float:
         image = self.compute_image_by_word(T, w[1])
         return w[0]/((len(T)-len(image)) ** 2)
 
@@ -211,41 +225,68 @@ class Automata(AutomataCore):
 
 
     def approximate_weighted_synch(self,m:int, t, H) -> tuple:
-        self._power = m
+        # Check if we should time
         if (self._shouldTime):
             startTimeAWS = time.time()
+
+        # Set the power set
+        self._power = m
+
+        # Generate power automaton
         self._compute_automaton_m()
         aut = (self.powerTransitionFunction,self.keyToStateDict) 
+
+        # Run graph so that our graph has the values for the power automaton
         self.graph(aut[0])
+
+        # Get dummy longest words
         shortest_words_with_inf = self.compute_shortest_words(0)
+
         shortest_words = dict()
         for i in range(1,len(self._transitionFunction[0])):
+
+            # Get the shortest words from the starting state i
             tmp_words = self.compute_shortest_words(i)
             for el in tmp_words:
                 if shortest_words_with_inf[el][0] > tmp_words[el][0]:
                     shortest_words_with_inf[el] = tmp_words[el]
+
+        # Copy over our computed shortest words
         for el in shortest_words_with_inf:
             if shortest_words_with_inf[el][0] != float('infinity'):
                 shortest_words[el] = shortest_words_with_inf[el]
+
+        # The total states in our automaton
         T = tuple(range(len(self._transitionFunction[0])))
         u = ""
         while len(T) > 1:
             current_shortest = float('infinity')
             w = ""
             for el in shortest_words:
+
+                # The key represenation of the temp word
                 P = set(aut[1][el])
+
                 if t(P, T, m):
                     tmp = H(P,T,shortest_words[el])
+
+                    # Check if the new weight is smaller
                     if tmp < current_shortest:
                         current_shortest = tmp
                         w = shortest_words[el][1]
+
+            # Check if we found any synchronizing words
             if w == "":
                 return ""
+
+            # Add our new word and reduce the remaining states
             u = u + w
             T = self.compute_image_by_word(T, w)
+
         if (self._shouldTime):
+            self._totalTests += 1
             endTimeAWS = time.time()
-            self._time = endTimeAWS - startTimeAWS
+            self._time.append((self._totalTests,endTimeAWS - startTimeAWS))
         return (u, len(u), self.word_weight(u))
 
     def getTiming(self,timing:str):
@@ -263,7 +304,7 @@ class Automata(AutomataCore):
         return self._shortest
     
     def __str__(self):
-        return f"\n----Automata----\n\n\nTransition Function:\n{self._transitionFunction}\n\nWeights:\n{self._weights}\n\nShortest Word:\n{self._shortest}\n\nShortest Word Length:\n{str(len(self._shortest))}\n\nPower:\n{self._power}\n\nPower Transition Function:\n{self._powerTransitionFunction}\n\nGraph:\n{self._graph}\n\nKeys To States:\n{self.keyToStateDict}\n\nTime to Initilize:\n{self._timeInit}\n\nTime to Compute Shortest Word:\n{self._timeCompShort}\n\nTime to Approximate Shortest Word:\n{self._time}\n\n\n----------------\n"
+        return f"\n----Automata----\n\n\nTransition Function:\n{self._transitionFunction}\n\nWeights:\n{self._weights}\n\nShortest Word:\n{self._shortest}\n\nShortest Word Length:\n{str(len(self._shortest))}\n\nPower:\n{self._power}\n\nPower Transition Function:\n{self._powerTransitionFunction}\n\nGraph:\n{self._graph}\n\nKeys To States:\n{self.keyToStateDict}\n\nTime to Initilize:\n{self._timeInit}s\n\nTime to Compute Shortest Word:\n{self._timeCompShort}s\n\nTime to Approximate Synchronizing Words:\n{', '.join(['Heuristic '+str(time[0])+': '+str(time[1])+'s' for time in self._time])}\n\nTotal Time to Approximate Synchronizing Words:\n{sum([time[1] for time in self._time])}s\n\n\n----------------\n"
 
 def getAutomataFromFile(filename:str) -> list:
     automata = list()
@@ -301,14 +342,14 @@ if __name__ == "__main__":
 
     parser.add_argument("-e","--entry",type=ascii,help="The transition function and weights for the Automata\nUsage: -e '[weightOne,weightTwo,...,weightN] [[weightOneStateOne,weightOneStateTwo,...,weightNStateN]|[weightTwoStates]|...|[weightNStates]]'\nExample: -e '[1,10] [[1,2,3,4,0,0]|[1,2,4,4,5,0]]'")
     parser.add_argument("-f","--file",type=pathlib.Path,help="Specifies a file to be parsed for Automata\nUsage: -f 'path/to/file'")
-    parser.add_argument("-t","--time",type=ascii,help="Specify a timing method for Automata\nUsage: -t '[total,init,shortest]'",choices=["'total'","'init'","'shortest'"])
+    parser.add_argument("-t","--time",type=ascii,help="Specify a timing method for Automata\nUsage: -t '[total,init,shortest]'",choices=["'total'","'init'","'shortest'"],default="total")
     parser.add_argument("-v","--verbose",help="Enable verbose output for Automata\nUsage: -v",action='store_true')
     parser.add_argument("-o","--output",type=pathlib.Path,help="Specify an output file for Automata\nUsage: -o 'path/to/output'")
 
     args = vars(parser.parse_args())
 
     verbose = args['verbose']
-    timing = args['time']
+    timing = args['time'].strip("'")
     output = args['output']
     inputFile = args['file']
 
@@ -354,33 +395,24 @@ if __name__ == "__main__":
         else:
             parser.parse_args(['--help'])
 
-    maxTime = (0,None)
+    heuristics = list()
     for test in tests:
-        test.approximate_weighted_synch(4,test.t1,test.H1)
-        test.approximate_weighted_synch(4,test.t1,test.H2)
-        test.approximate_weighted_synch(4,test.t3,test.H3)
-        test.approximate_weighted_synch(4,test.t1,test.H4)
+        heuristics.append(test.approximate_weighted_synch(4,test.t1,test.h1))
+        heuristics.append(test.approximate_weighted_synch(4,test.t1,test.h2))
+        heuristics.append(test.approximate_weighted_synch(4,test.t3,test.h3))
+        heuristics.append(test.approximate_weighted_synch(4,test.t1,test.h4))
 
         test.compute_shortest_word()
 
-        if (timing is not None):
-            newMax = max(maxTime[0],test.getTiming(timing.strip("'")))
-            if (newMax > maxTime[0]):
-                maxTime = (newMax,test)
-
     if (output is not None):
-        with output.open('a') as outFile:
-            if (verbose):
-                for test in tests:
+        with output.open('w') as outFile:
+            for test in tests:
+                outFile.write(f"Shortest:\t{test.getShortest()}\nLength:\t{str(len(test.getShortest()))}\nHeuristics:\n{', '.join(['Heuristic '+str(h+1)+'-> '+str(heuristics[h][0]) for h in range(len(heuristics))])}\n\nTime:\n{', '.join(['Heuristic '+str(time[0])+': '+str(time[1])+'s' for time in test.getTiming(timing)])}\n")
+                if (verbose):
                     outFile.write(str(test)) 
-            else:
-                for test in tests:
-                    outFile.write("Shortest:\t" + test.getShortest() + "\nLength:\t" + str(len(test.getShortest())) + "\n\n")
     else:
-        if (verbose):
-            for test in tests:
+        for test in tests:
+            print(f"Shortest:\t{test.getShortest()}\nLength:\t{str(len(test.getShortest()))}\nHeuristics:\n{', '.join(['Heuristic '+str(h+1)+'-> '+str(heuristics[h][0]) for h in range(len(heuristics))])}\n\nTime:\n{', '.join(['Heuristic '+str(time[0])+': '+str(time[1])+'s' for time in test.getTiming(timing)])}\n")
+            if (verbose):
                 print(test)
-        else:
-            for test in tests:
-                print("Shortest:\t" + test.getShortest())
 
