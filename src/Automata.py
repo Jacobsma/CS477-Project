@@ -139,7 +139,6 @@ class Automata(AutomataCore):
         return 
 
 
-    #TODO: maybe store this?
     def compute_shortest_words(self,starting_vertex:int) -> dict:
 
         #Check if we have already calculated for this starting_vertex
