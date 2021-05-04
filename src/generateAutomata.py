@@ -2,9 +2,9 @@
 # coding: utf-8
 import random
 if __name__ == "__main__":
-    maxStates = 20
-    maxSymbols = 20
-    automata = 1000
+    maxStates = 12
+    maxSymbols = 10
+    automata = 100000
     with open("automata.txt","w",newline='') as f:
         f.write("weights|transition\n")
         for i in range(automata):

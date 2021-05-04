@@ -6,6 +6,7 @@ import heapq
 import time #Timing
 import argparse #CLI
 import pathlib #CLI
+import multiprocessing as mp #Multithreading
 
 """
 TODOS:
@@ -223,7 +224,7 @@ class Automata(AutomataCore):
         return weight
 
 
-    def approximate_weighted_synch(self,m:int, t, H) -> tuple:
+    def approximate_weighted_synch(self,m:int, t, H):
         # Check if we should time
         if (self._shouldTime):
             startTimeAWS = time.time()
@@ -276,7 +277,7 @@ class Automata(AutomataCore):
 
             # Check if we found any synchronizing words
             if w == "":
-                return ""
+                return None
 
             # Add our new word and reduce the remaining states
             u = u + w
@@ -285,8 +286,7 @@ class Automata(AutomataCore):
         if (self._shouldTime):
             self._totalTests += 1
             endTimeAWS = time.time()
-            self._time.append((self._totalTests,endTimeAWS - startTimeAWS))
-        return (u, len(u), self.word_weight(u))
+        return Result(word=u, wordWeight=self.word_weight(u),time=endTimeAWS - startTimeAWS,hCount=self._totalTests)
 
     def getTiming(self,timing:str):
         timingType = str.lower(timing)
@@ -304,6 +304,51 @@ class Automata(AutomataCore):
     
     def __str__(self):
         return f"\n----Automata----\n\n\nTransition Function:\n{self._transitionFunction}\n\nWeights:\n{self._weights}\n\nShortest Word:\n{self._shortest}\n\nShortest Word Length:\n{str(len(self._shortest))}\n\nPower:\n{self._power}\n\nPower Transition Function:\n{self._powerTransitionFunction}\n\nGraph:\n{self._graph}\n\nKeys To States:\n{self.keyToStateDict}\n\nTime to Initilize:\n{self._timeInit}s\n\nTime to Compute Shortest Word:\n{self._timeCompShort}s\n\nTime to Approximate Synchronizing Words:\n{', '.join(['Heuristic '+str(time[0])+': '+str(time[1])+'s' for time in self._time])}\n\nTotal Time to Approximate Synchronizing Words:\n{sum([time[1] for time in self._time])}s\n\n\n----------------\n"
+
+class Result:
+    def __init__(self,word:str,wordWeight:int,time:float,hCount:int):
+        self._word = word 
+        self._wordWeight = wordWeight 
+        self._time = time 
+        self._hCount = hCount 
+
+    @property
+    def word(self) -> str:
+        return self._word
+
+    @word.setter
+    def word(self,resultWord:str):
+        self._word = resultWord 
+        return
+
+    @property
+    def wordWeight(self) -> int:
+        return self._wordWeight
+
+    @wordWeight.setter
+    def wordWeight(self,resultWordWeight:int):
+        self._wordWeight = resultWordWeight 
+        return
+
+    @property
+    def time(self) -> float:
+        return self._time
+
+    @time.setter
+    def time(self,resultTime:float):
+        self._time = resultTime 
+        return
+
+    @property
+    def hCount(self) -> int:
+        return self._hCount
+
+    @hCount.setter
+    def hCount(self,resultHCount:int):
+        self._hCount = resultHCount 
+        return
+
+
 
 def getAutomataFromFile(filename:str) -> list:
     automata = list()
@@ -334,6 +379,24 @@ def getAutomataFromFile(filename:str) -> list:
             automata.append((transitionFunction,len(transitionFunction[0]),weights))
     return automata
 
+def addAutomaton(automaton:tuple) -> Automata:
+    try:
+        return Automata(transition=automaton[0],power=automaton[1],weights=automaton[2],shouldTime=True)
+    except Exception as e:
+        #print(e)
+        #print(f"Invalid Automata:\t{automaton[2]},\t{automaton[0]},\t{automaton[1]}\n")
+        return
+
+def testHueristics(automaton:Automata) -> tuple:
+    h1 = automaton.approximate_weighted_synch(4,automaton.t1,automaton.h1)
+    h2 = automaton.approximate_weighted_synch(4,automaton.t1,automaton.h2)
+    h3 = automaton.approximate_weighted_synch(4,automaton.t3,automaton.h3)
+    h4 = automaton.approximate_weighted_synch(4,automaton.t1,automaton.h4)
+    shortest = automaton.compute_shortest_word()
+    return (h1,h2,h3,h4,shortest) 
+
+
+
 if __name__ == "__main__":
             
     #TODO: Make a better description
@@ -352,15 +415,12 @@ if __name__ == "__main__":
     output = args['output']
     inputFile = args['file']
 
+    amtWorkers = 20
+
     tests = list()
     if (inputFile is not None and inputFile.exists()):
-        for automaton in getAutomataFromFile(inputFile):
-            try:
-                tests.append(Automata(automaton[0],automaton[1],automaton[2],shouldTime=True))
-            except Exception as e:
-                if (verbose):
-                    print(f"Invalid Automata:\t{automaton[2]},\t{automaton[0]},\t{automaton[1]}\n")
-                continue
+        with mp.Pool(processes=amtWorkers) as pool:
+            tests = pool.map(addAutomaton, getAutomataFromFile(inputFile))
 
     else:
         weights, transitionFunction = list(),list()
@@ -394,24 +454,31 @@ if __name__ == "__main__":
         else:
             parser.parse_args(['--help'])
 
-    heuristics = list()
-    for test in tests:
-        heuristics.append(test.approximate_weighted_synch(4,test.t1,test.h1))
-        heuristics.append(test.approximate_weighted_synch(4,test.t1,test.h2))
-        heuristics.append(test.approximate_weighted_synch(4,test.t3,test.h3))
-        heuristics.append(test.approximate_weighted_synch(4,test.t1,test.h4))
+    e = list()
+    for x in range(len(tests)):
+        if (tests[x] is not None):
+            e.append(tests[x])
+    tests = e
 
-        test.compute_shortest_word()
+    heuristics = list()
+    with mp.Pool(processes=amtWorkers) as pool:
+        heuristics = pool.map(testHueristics, tests)
+
+    e = list()
+    for x in range(len(tests)):
+        if (None not in heuristics[x]):
+            e.append((tests[x],heuristics[x]))
+    heuristics = e
 
     if (output is not None):
         with output.open('w') as outFile:
-            for test in tests:
-                outFile.write(f"Shortest:\t{test.getShortest()}\nLength:\t{str(len(test.getShortest()))}\nHeuristics:\n{', '.join(['Heuristic '+str(h+1)+'-> '+str(heuristics[h][0]) for h in range(len(heuristics))])}\n\nTime:\n{', '.join(['Heuristic '+str(time[0])+': '+str(time[1])+'s' for time in test.getTiming(timing)])}\n")
+            for result in heuristics:
+                outFile.write(f"Shortest:\t{result[1][-1]}\nLength:\t{str(len(result[1][-1]))}\nHeuristics:\n{', '.join(['Heuristic '+str(h+1)+'-> ('+result[1][h].word +' -- '+str(result[1][h].wordWeight)+')'  for h in range(len(result[1])-1)])}\nTime:\n{', '.join(['Heuristic '+str(result[1][t].hCount)+'-> '+str(result[1][t].time)+'s' for t in range(len(result[1])-1)])}\n\n")
                 if (verbose):
-                    outFile.write(str(test)) 
+                    outFile.write(str(result[0])) 
     else:
-        for test in tests:
-            print(f"Shortest:\t{test.getShortest()}\nLength:\t{str(len(test.getShortest()))}\nHeuristics:\n{', '.join(['Heuristic '+str(h+1)+'-> '+str(heuristics[h][0]) for h in range(len(heuristics))])}\n\nTime:\n{', '.join(['Heuristic '+str(time[0])+': '+str(time[1])+'s' for time in test.getTiming(timing)])}\n")
+        for result in heuristics:
+            print(f"Shortest:\t{result[1][-1]}\nLength:\t{str(len(result[1][-1]))}\nHeuristics:\n{', '.join(['Heuristic '+str(h+1)+'-> ('+result[1][h].word +' -- '+str(result[1][h].wordWeight)+')'  for h in range(len(result[1])-1)])}\nTime:\n{', '.join(['Heuristic '+str(result[1][t].hCount)+'-> '+str(result[1][t].time)+'s' for t in range(len(result[1])-1)])}\n\n")
             if (verbose):
-                print(test)
+                print(result[0])
 

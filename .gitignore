@@ -5,3 +5,6 @@ src/test1.txt
 src/appx_synch_edited.ipynb
 src/appx_synch.ipynb
 .nvimlog
+src/results.txt
+src/resultsOneMil.txt
+src/automata.txt
