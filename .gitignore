@@ -8,3 +8,7 @@ src/appx_synch.ipynb
 src/results.txt
 src/resultsOneMil.txt
 src/automata.txt
+src/tcp.txt
+src/AutomataFormated.py
+src/generateAutomataFormated.py
+src/tcp.txt
